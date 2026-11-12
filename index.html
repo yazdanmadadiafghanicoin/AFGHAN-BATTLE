@@ -9,60 +9,60 @@
 *{box-sizing:border-box}
 body{margin:0;overflow:hidden;background:#263d28;color:white;font-family:Arial;touch-action:none}
 canvas{display:block}
-#hud{position:absolute;top:12px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:3;pointer-events:none}
-.panel{background:#111c;padding:10px;border-radius:10px;font-size:14px;line-height:1.7}
-#health{color:#5cff70}
-#joy{position:absolute;bottom:25px;left:20px;width:120px;height:120px;border:2px solid #fff9;border-radius:50%;background:#ffffff22;z-index:5;touch-action:none}
-#stick{position:absolute;left:35px;top:35px;width:46px;height:46px;border-radius:50%;background:#fff9}
-#fire{position:absolute;right:25px;bottom:40px;width:85px;height:85px;border-radius:50%;background:#c22;color:white;border:3px solid white;font-weight:bold;font-size:18px;z-index:5}
+#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}
+.panel{background:#111d;padding:10px;border-radius:10px;line-height:1.7;font-size:14px}
+#health{color:#62ff70}
+#joy{position:absolute;bottom:25px;left:20px;width:120px;height:120px;border:2px solid #ffffff88;border-radius:50%;background:#ffffff22;z-index:5;touch-action:none}
+#stick{position:absolute;left:35px;top:35px;width:46px;height:46px;background:#ffffffcc;border-radius:50%}
+#fire{position:absolute;right:25px;bottom:40px;width:85px;height:85px;border-radius:50%;background:#bd2525;border:3px solid white;color:white;font-size:18px;font-weight:bold;z-index:5}
 #look{position:absolute;right:0;top:100px;width:48%;height:45%;z-index:2;touch-action:none}
 #cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;text-shadow:0 0 5px black;pointer-events:none}
-#msg{position:absolute;top:43%;width:100%;text-align:center;font-size:25px;text-shadow:0 2px 5px black;z-index:6;pointer-events:none}
-#restart{display:none;position:absolute;top:55%;left:50%;transform:translateX(-50%);padding:15px 25px;border:0;border-radius:10px;background:orange;font-size:18px;z-index:7}
-#error{position:absolute;top:40%;padding:20px;color:white;background:#8b0000;display:none;z-index:20}
+#msg{position:absolute;top:43%;width:100%;text-align:center;font-size:23px;text-shadow:0 2px 5px black;z-index:8;pointer-events:none}
+#restart{display:none;position:absolute;top:55%;left:50%;transform:translateX(-50%);padding:15px 25px;border:0;border-radius:10px;background:orange;font-size:18px;z-index:9}
+#loading{position:absolute;top:45%;width:100%;text-align:center;z-index:10;color:white}
 </style>
 </head>
 <body>
+
+<div id="loading">در حال بارگذاری سرباز سه‌بعدی...</div>
 
 <div id="hud">
  <div class="panel">
   🇦🇫 <b>AFGHAN BATTLE</b><br>
   <span id="health">❤️ 100</span><br>
-  <span id="state">آماده جنگ</span>
+  <span id="status">آماده جنگ</span>
  </div>
  <div class="panel">
-  دشمن: <span id="kills">0</span><br>
+  دشمنان: <span id="kills">0</span><br>
   مهمات: <span id="ammo">30</span><br>
-  اسلحه: AK-47
+  AK-47
  </div>
 </div>
 
 <div id="cross">+</div>
-<div id="msg">AFGHAN BATTLE</div>
-<div id="error"></div>
-<button id="restart" onclick="location.reload()">شروع دوباره</button>
+<div id="msg"></div>
 <div id="joy"><div id="stick"></div></div>
 <div id="look"></div>
 <button id="fire">FIRE</button>
+<button id="restart" onclick="location.reload()">شروع دوباره</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 
 <script>
 (function(){
 
-const error=document.getElementById("error");
+const loading=document.getElementById("loading");
 
-if(!window.THREE){
- error.style.display="block";
- error.innerText="موتور سه بعدی بارگذاری نشد. اینترنت را بررسی کن.";
+if(!window.THREE || !THREE.GLTFLoader){
+ loading.textContent="موتور بازی بارگذاری نشد. اینترنت را بررسی کن.";
  return;
 }
 
-try{
-
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x9bb8ca);
-scene.fog=new THREE.Fog(0x9bb8ca,55,180);
+scene.fog=new THREE.Fog(0x9bb8ca,60,180);
 
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,300);
 
@@ -80,28 +80,27 @@ scene.add(sun);
 // زمین
 const ground=new THREE.Mesh(
  new THREE.PlaneGeometry(300,300),
- new THREE.MeshStandardMaterial({color:0x747b4b})
+ new THREE.MeshStandardMaterial({color:0x777b4e})
 );
 ground.rotation.x=-Math.PI/2;
 scene.add(ground);
 
-// ساختمان
-function cube(x,y,z,w,h,d,color){
+// ساختمان‌ها
+function box(x,y,z,w,h,d,color){
  const m=new THREE.Mesh(
   new THREE.BoxGeometry(w,h,d),
   new THREE.MeshStandardMaterial({color})
  );
  m.position.set(x,y,z);
  scene.add(m);
- return m;
 }
 
-for(let i=0;i<22;i++){
+for(let i=0;i<20;i++){
  let x=(Math.random()-.5)*110;
  let z=(Math.random()-.5)*110;
  if(Math.abs(x)<15&&Math.abs(z)<15)continue;
- cube(x,2,z,7,4,7,0xb4a184);
- cube(x,4.2,z,7.2,.4,7.2,0x62503c);
+ box(x,2,z,7,4,7,0xb6a184);
+ box(x,4.2,z,7.2,.4,7.2,0x63513b);
 }
 
 // درخت‌ها
@@ -109,7 +108,8 @@ for(let i=0;i<65;i++){
  let x=(Math.random()-.5)*130;
  let z=(Math.random()-.5)*130;
  if(Math.abs(x)<15&&Math.abs(z)<15)continue;
- cube(x,1,z,.7,2,.7,0x65462a);
+ box(x,1,z,.6,2,.6,0x62452a);
+
  const t=new THREE.Mesh(
   new THREE.ConeGeometry(2.3,6,7),
   new THREE.MeshStandardMaterial({color:0x315b32})
@@ -118,99 +118,138 @@ for(let i=0;i<65;i++){
  scene.add(t);
 }
 
-// سرباز
-const player=new THREE.Group();
+// سرباز و دشمنان
+const loader=new THREE.GLTFLoader();
+const modelURL="https://models.codelove.in/models/military-male-02.glb";
 
-const body=new THREE.Mesh(
- new THREE.CylinderGeometry(.5,.6,1.3,12),
- new THREE.MeshStandardMaterial({color:0x354b2d})
-);
-body.position.y=1.1;
-player.add(body);
-
-const head=new THREE.Mesh(
- new THREE.SphereGeometry(.32,12,12),
- new THREE.MeshStandardMaterial({color:0xc99570})
-);
-head.position.y=2;
-player.add(head);
-
-const helmet=new THREE.Mesh(
- new THREE.SphereGeometry(.36,12,8,0,Math.PI*2,0,Math.PI/2),
- new THREE.MeshStandardMaterial({color:0x354b2d})
-);
-helmet.position.y=2.1;
-player.add(helmet);
-
-const weapon=new THREE.Mesh(
- new THREE.BoxGeometry(.15,.15,1.1),
- new THREE.MeshStandardMaterial({color:0x222222})
-);
-weapon.position.set(.35,1.3,-.6);
-player.add(weapon);
-
-scene.add(player);
-
-// دشمنان
-const enemies=[];
-
-function newEnemy(){
- const e=new THREE.Group();
-
- const b=new THREE.Mesh(
-  new THREE.CylinderGeometry(.5,.55,1.3,12),
-  new THREE.MeshStandardMaterial({color:0x9e2920})
- );
- b.position.y=1.1;
- e.add(b);
-
- const h=new THREE.Mesh(
-  new THREE.SphereGeometry(.3,12,12),
-  new THREE.MeshStandardMaterial({color:0xb98a69})
- );
- h.position.y=2;
- e.add(h);
-
- e.position.set(
-  (Math.random()-.5)*90,
-  0,
-  (Math.random()-.5)*90
- );
-
- if(e.position.length()<20)e.position.x+=35;
- scene.add(e);
- enemies.push(e);
-}
-
-for(let i=0;i<10;i++)newEnemy();
-
-// وضعیت
+let player=null;
+let enemies=[];
+let mixers=[];
+let enemyRoots=[];
 let health=100,ammo=30,kills=0;
 let dead=false,moveX=0,moveY=0;
 let angle=0,lastShot=0;
+let ready=false;
 
+function prepareModel(model){
+ model.updateMatrixWorld(true);
+
+ const bounds=new THREE.Box3().setFromObject(model);
+ const size=bounds.getSize(new THREE.Vector3());
+
+ if(size.y>0){
+  model.scale.multiplyScalar(2.1/size.y);
+ }
+
+ model.updateMatrixWorld(true);
+ const newBounds=new THREE.Box3().setFromObject(model);
+ model.position.y-=newBounds.min.y;
+
+ model.traverse(obj=>{
+  if(obj.isMesh){
+   obj.castShadow=true;
+   obj.receiveShadow=true;
+  }
+ });
+}
+
+function addCharacter(model,x,z,isEnemy){
+
+ let character;
+
+ if(THREE.SkeletonUtils){
+  character=THREE.SkeletonUtils.clone(model);
+ }else{
+  character=model.clone(true);
+ }
+
+ prepareModel(character);
+
+ const root=new THREE.Group();
+ root.add(character);
+ root.position.set(x,0,z);
+ root.userData.isEnemy=isEnemy;
+
+ scene.add(root);
+
+ if(isEnemy){
+  enemies.push(root);
+ }else{
+  player=root;
+ }
+
+ return root;
+}
+
+function startGame(model){
+
+ addCharacter(model,0,0,false);
+
+ for(let i=0;i<5;i++){
+  let x=(Math.random()-.5)*75;
+  let z=(Math.random()-.5)*75;
+
+  if(Math.hypot(x,z)<20)x+=30;
+
+  addCharacter(model,x,z,true);
+ }
+
+ // انیمیشن‌های مدل در صورت وجود
+ if(model.animations && model.animations.length){
+  mixers.forEach(m=>{
+   const action=m.clipAction(model.animations[0]);
+   action.play();
+  });
+ }
+
+ ready=true;
+ loading.style.display="none";
+ document.getElementById("msg").textContent="شروع جنگ!";
+ setTimeout(()=>{
+  document.getElementById("msg").style.display="none";
+ },2000);
+}
+
+loader.load(
+ modelURL,
+ function(gltf){
+  startGame(gltf.scene);
+ },
+ function(xhr){
+  loading.textContent="بارگذاری سرباز: "+
+   Math.round(xhr.loaded/(xhr.total||1)*100)+"%";
+ },
+ function(error){
+  loading.textContent="مدل سرباز بارگذاری نشد. اینترنت یا لینک مدل را بررسی کن.";
+  console.error(error);
+ }
+);
+
+// کنترل حرکت
 const joy=document.getElementById("joy");
 const stick=document.getElementById("stick");
-const look=document.getElementById("look");
 
-function joystick(e){
+function moveStick(e){
  const r=joy.getBoundingClientRect();
- let dx=e.clientX-(r.left+r.width/2);
- let dy=e.clientY-(r.top+r.height/2);
- let d=Math.min(43,Math.hypot(dx,dy));
- let a=Math.atan2(dy,dx);
+ const dx=e.clientX-(r.left+r.width/2);
+ const dy=e.clientY-(r.top+r.height/2);
+ const d=Math.min(43,Math.hypot(dx,dy));
+ const a=Math.atan2(dy,dx);
+
  moveX=Math.cos(a)*d/43;
  moveY=Math.sin(a)*d/43;
+
  stick.style.left=(35+moveX*43)+"px";
  stick.style.top=(35+moveY*43)+"px";
 }
 
 joy.addEventListener("pointerdown",e=>{
  joy.setPointerCapture(e.pointerId);
- joystick(e);
+ moveStick(e);
 });
+
 joy.addEventListener("pointermove",e=>{
- if(e.buttons)joystick(e);
+ if(e.buttons)moveStick(e);
 });
 
 function resetJoy(){
@@ -218,21 +257,26 @@ function resetJoy(){
  stick.style.left="35px";
  stick.style.top="35px";
 }
+
 joy.addEventListener("pointerup",resetJoy);
 joy.addEventListener("pointercancel",resetJoy);
 
 // چرخش دوربین
+const look=document.getElementById("look");
 let looking=false,oldX=0;
+
 look.addEventListener("pointerdown",e=>{
  looking=true;
  oldX=e.clientX;
  look.setPointerCapture(e.pointerId);
 });
+
 look.addEventListener("pointermove",e=>{
  if(!looking)return;
  angle-=(e.clientX-oldX)*.008;
  oldX=e.clientX;
 });
+
 look.addEventListener("pointerup",()=>looking=false);
 look.addEventListener("pointercancel",()=>looking=false);
 
@@ -240,28 +284,36 @@ look.addEventListener("pointercancel",()=>looking=false);
 const ray=new THREE.Raycaster();
 
 function shoot(){
- if(dead||ammo<=0)return;
+ if(!ready||dead||ammo<=0)return;
  if(performance.now()-lastShot<350)return;
+
  lastShot=performance.now();
  ammo--;
  document.getElementById("ammo").textContent=ammo;
 
  ray.setFromCamera(new THREE.Vector2(0,0),camera);
 
- let targets=[];
- enemies.forEach(e=>e.children.forEach(c=>targets.push(c)));
-
- let hits=ray.intersectObjects(targets);
+ let hits=ray.intersectObjects(enemyRoots,true);
 
  if(hits.length){
-  let enemy=enemies.find(e=>e.children.includes(hits[0].object));
+  let target=hits[0].object;
+  let enemy=null;
+
+  while(target){
+   if(target.userData.isEnemy){
+    enemy=target;
+    break;
+   }
+   target=target.parent;
+  }
+
   if(enemy){
    scene.remove(enemy);
    enemies.splice(enemies.indexOf(enemy),1);
+   enemyRoots=enemyRoots.filter(e=>e!==enemy);
    kills++;
    document.getElementById("kills").textContent=kills;
-   document.getElementById("state").textContent="دشمن نابود شد";
-   if(enemies.length<10&&kills<30)newEnemy();
+   document.getElementById("status").textContent="دشمن نابود شد";
   }
  }
 }
@@ -271,10 +323,12 @@ document.getElementById("fire").addEventListener("pointerdown",e=>{
  shoot();
 });
 
-// پایان بازی
+// پایان
 function gameOver(){
+ if(dead)return;
  dead=true;
  document.getElementById("msg").textContent="GAME OVER";
+ document.getElementById("msg").style.display="block";
  document.getElementById("restart").style.display="block";
 }
 
@@ -283,67 +337,87 @@ const clock=new THREE.Clock();
 
 function animate(){
  requestAnimationFrame(animate);
+
  const dt=Math.min(clock.getDelta(),.05);
 
- if(!dead){
+ if(ready){
 
-  const forward=new THREE.Vector3(
-   -Math.sin(angle),0,-Math.cos(angle)
-  );
-  const right=new THREE.Vector3(
-   Math.cos(angle),0,-Math.sin(angle)
-  );
+  mixers.forEach(m=>m.update(dt));
 
-  player.position.addScaledVector(right,moveX*8*dt);
-  player.position.addScaledVector(forward,moveY*8*dt);
+  if(!dead){
 
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-140,140);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-140,140);
+   const forward=new THREE.Vector3(
+    -Math.sin(angle),0,-Math.cos(angle)
+   );
+   const right=new THREE.Vector3(
+    Math.cos(angle),0,-Math.sin(angle)
+   );
 
-  if(Math.abs(moveX)+Math.abs(moveY)>.1){
-   player.rotation.y=Math.atan2(-moveX,-moveY)+angle;
+   player.position.addScaledVector(right,moveX*6*dt);
+   player.position.addScaledVector(forward,moveY*6*dt);
+
+   player.position.x=THREE.MathUtils.clamp(player.position.x,-140,140);
+   player.position.z=THREE.MathUtils.clamp(player.position.z,-140,140);
+
+   if(Math.abs(moveX)+Math.abs(moveY)>.1){
+    player.rotation.y=Math.atan2(-moveX,-moveY)+angle;
+   }
+
+   enemies.forEach(e=>{
+    const direction=new THREE.Vector3().subVectors(
+     player.position,e.position
+    );
+    const distance=direction.length();
+
+    if(distance>2){
+     direction.normalize();
+     e.position.addScaledVector(direction,1.7*dt);
+     e.rotation.y=Math.atan2(-direction.x,-direction.z);
+    }else{
+     health=Math.max(0,health-10*dt);
+     document.getElementById("health").textContent=
+      "❤️ "+Math.floor(health);
+     if(health<=0)gameOver();
+    }
+   });
   }
 
-  enemies.forEach(e=>{
-   const v=new THREE.Vector3().subVectors(player.position,e.position);
-   const distance=v.length();
+  const offset=new THREE.Vector3(
+   Math.sin(angle)*8,4.5,Math.cos(angle)*8
+  );
 
-   if(distance>1.8){
-    v.normalize();
-    e.position.addScaledVector(v,2*dt);
-    e.rotation.y=Math.atan2(-v.x,-v.z);
-   }else{
-    health=Math.max(0,health-12*dt);
-    document.getElementById("health").textContent="❤️ "+Math.floor(health);
-    if(health<=0)gameOver();
-   }
-  });
+  camera.position.lerp(
+   player.position.clone().add(offset),.12
+  );
+
+  camera.lookAt(
+   player.position.x,player.position.y+1.1,
+   player.position.z
+  );
  }
-
- const offset=new THREE.Vector3(
-  Math.sin(angle)*9,5,Math.cos(angle)*9
- );
-
- camera.position.lerp(player.position.clone().add(offset),.15);
- camera.lookAt(player.position.x,player.position.y+1.4,player.position.z);
 
  renderer.render(scene,camera);
 }
 
 animate();
 
-document.getElementById("msg").style.display="none";
+// بعد از بارگذاری مدل، هدف‌ها را برای تیراندازی ثبت کن
+const oldStart=startGame;
+const originalStart=loader.load;
 
-addEventListener("resize",()=>{
+// اندازه صفحه
+window.addEventListener("resize",()=>{
  camera.aspect=innerWidth/innerHeight;
  camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
 });
 
-}catch(e){
- error.style.display="block";
- error.innerText="خطای بازی: "+e.message;
-}
+// ثبت دشمنان برای نشانه‌گیری در هر فریم
+setInterval(()=>{
+ if(ready){
+  enemyRoots=enemies.slice();
+ }
+},500);
 
 })();
 </script>
